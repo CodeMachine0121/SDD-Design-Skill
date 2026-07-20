@@ -6,6 +6,36 @@
 
 ---
 
+## 安裝（透過 Claude Code 指令）
+
+在 Claude Code 中，只要兩步就能裝好這個 plugin。
+
+**1. 加入 marketplace**（把這個 repo 註冊為 plugin 來源）：
+
+```
+/plugin marketplace add CodeMachine0121/SDD-Design-Skill
+```
+
+**2. 安裝 plugin**：
+
+```
+/plugin install sdd-design-skills@SDD-Design-Skill
+```
+
+> `sdd-design-skills` 是 plugin 名稱，`SDD-Design-Skill` 是上一步加入的 marketplace 名稱。
+
+安裝後重啟 Claude Code（或執行 `/plugin` 確認狀態），四個技能的觸發詞（如 `/ux-spec`、`/ui-spec`、`/design-build`）即可使用。
+
+**管理與更新**：
+
+```
+/plugin                                   # 開啟 plugin 管理介面，啟用／停用／檢視
+/plugin marketplace update SDD-Design-Skill   # 更新到 marketplace 最新版
+/plugin uninstall sdd-design-skills@SDD-Design-Skill
+```
+
+---
+
 ## Pipeline 總覽
 
 ```
