@@ -1,0 +1,11 @@
+{
+  "name": "sdd-design-skills",
+  "description": "A Claude Code plugin whose skills guide design from a fuzzy requirement all the way to an experienceable screen, covering UX exploration, UI specification, ubiquitous language mapping, and design build.",
+  "version": "1.0.0",
+  "author": {
+    "name": "James Hsueh",
+    "email": "asdfg55887@gmail.com"
+  },
+  "homepage": "https://github.com/CodeMachine0121/SDD-Design-Skill",
+  "keywords": ["sdd", "design", "ux-spec", "ui-spec", "ubiquitous-language", "design-build", "spec-driven-design", "prototyping"]
+}

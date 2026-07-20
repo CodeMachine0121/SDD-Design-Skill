@@ -1,0 +1,27 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "SDD-Design-Skill",
+  "description": "A Claude Code plugin marketplace for design skills — from a fuzzy requirement to an experienceable screen",
+  "owner": {
+    "name": "James Hsueh",
+    "email": "asdfg55887@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "sdd-design-skills",
+      "description": "A Claude Code plugin whose skills guide design from a fuzzy requirement all the way to an experienceable screen, covering UX exploration, UI specification, ubiquitous language mapping, and design build.",
+      "version": "1.0.0",
+      "author": {
+        "name": "James Hsueh",
+        "email": "asdfg55887@gmail.com"
+      },
+      "category": "development",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/CodeMachine0121/SDD-Design-Skill.git"
+      },
+      "homepage": "https://github.com/CodeMachine0121/SDD-Design-Skill",
+      "keywords": ["sdd", "design", "ux-spec", "ui-spec", "ubiquitous-language", "design-build", "spec-driven-design", "prototyping"]
+    }
+  ]
+}
