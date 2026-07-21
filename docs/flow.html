@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SDD Design Skills — Flow</title>
+<style>
+  :root {
+    --paper:   #eef1ee;
+    --surface: #ffffff;
+    --surface-2:#f6f8f6;
+    --ink:     #16211e;
+    --ink-soft:#54615c;
+    --ink-faint:#8a958f;
+    --line:    #d6ddd7;
+    --line-strong:#c2ccc5;
+    --forward: #0f7d70;
+    --forward-ink:#0a5d53;
+    --forward-wash:#dcefeb;
+    --back:    #b8541d;
+    --back-ink:#8f3f13;
+    --back-wash:#f6e3d5;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --shadow: 0 1px 2px rgba(20,33,30,.05), 0 8px 24px -12px rgba(20,33,30,.18);
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:   #0e1412;
+      --surface: #151d1a;
+      --surface-2:#1a2320;
+      --ink:     #e7ece9;
+      --ink-soft:#9fada7;
+      --ink-faint:#6c7a74;
+      --line:    #26312d;
+      --line-strong:#31403a;
+      --forward: #3fbfab;
+      --forward-ink:#7ad7c8;
+      --forward-wash:#153029;
+      --back:    #e08a4e;
+      --back-ink:#f0a875;
+      --back-wash:#2e2015;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"] {
+    --paper:#eef1ee; --surface:#ffffff; --surface-2:#f6f8f6; --ink:#16211e; --ink-soft:#54615c; --ink-faint:#8a958f;
+    --line:#d6ddd7; --line-strong:#c2ccc5; --forward:#0f7d70; --forward-ink:#0a5d53; --forward-wash:#dcefeb;
+    --back:#b8541d; --back-ink:#8f3f13; --back-wash:#f6e3d5;
+    --shadow:0 1px 2px rgba(20,33,30,.05),0 8px 24px -12px rgba(20,33,30,.18);
+  }
+  :root[data-theme="dark"] {
+    --paper:#0e1412; --surface:#151d1a; --surface-2:#1a2320; --ink:#e7ece9; --ink-soft:#9fada7; --ink-faint:#6c7a74;
+    --line:#26312d; --line-strong:#31403a; --forward:#3fbfab; --forward-ink:#7ad7c8; --forward-wash:#153029;
+    --back:#e08a4e; --back-ink:#f0a875; --back-wash:#2e2015;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 30px -14px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  .lang-switch { font-family: var(--font-mono); font-size: 12.5px; padding-top: 24px; display: flex; gap: 10px; align-items: center; }
+  .lang-switch a { color: var(--ink-soft); text-decoration: none; }
+  .lang-switch a:hover { color: var(--forward); }
+  .lang-switch .cur { color: var(--ink); font-weight: 600; }
+  .lang-switch .sep { color: var(--line-strong); }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  /* ---------- header ---------- */
+  header { padding: 40px 0 40px; }
+  h1 {
+    font-size: clamp(30px, 5.5vw, 52px);
+    line-height: 1.08;
+    letter-spacing: -.02em;
+    margin: 14px 0 0;
+    text-wrap: balance;
+    font-weight: 680;
+  }
+  h1 .accent-f { color: var(--forward); }
+  h1 .accent-b { color: var(--back); }
+  .lede {
+    max-width: 60ch;
+    font-size: clamp(16px, 2.2vw, 19px);
+    color: var(--ink-soft);
+    margin: 20px 0 0;
+  }
+  .principle-strip {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-top: 26px;
+  }
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--ink-soft);
+    background: var(--surface);
+  }
+  .chip b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- controls ---------- */
+  .toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px;
+    margin: 40px 0 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .seg {
+    display: inline-flex;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .seg button {
+    font: inherit; font-size: 13px; font-weight: 550;
+    border: 0; background: transparent; color: var(--ink-soft);
+    padding: 7px 15px; border-radius: 999px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: background .18s, color .18s;
+  }
+  .seg button .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .seg button[data-mode="forward"] .dot { background: var(--forward); }
+  .seg button[data-mode="back"] .dot { background: var(--back); }
+  .seg button[data-mode="all"] .dot { background: linear-gradient(90deg,var(--forward) 50%, var(--back) 50%); }
+  .seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+  .legend { display: flex; gap: 18px; margin-left: auto; font-size: 12.5px; color: var(--ink-soft); flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend i { width: 22px; height: 0; border-top-width: 3px; border-top-style: solid; display: inline-block; border-radius: 2px; }
+  .legend .lf i { border-color: var(--forward); }
+  .legend .lb i { border-color: var(--back); border-top-style: dashed; }
+
+  /* ---------- map ---------- */
+  .map { position: relative; margin: 8px 0 6px; }
+  .diagram-wide { width: 100%; height: auto; display: block; }
+  @media (max-width: 720px) { .diagram-wide { display: none; } }
+
+  /* SVG element styling driven by mode classes on .map */
+  .stage-box { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.5; }
+  .stage-box.optional { stroke-dasharray: 5 4; }
+  .stage-hit { fill: transparent; cursor: pointer; }
+  .stage-idx { font-family: var(--font-mono); font-size: 12px; fill: var(--ink-faint); letter-spacing: .08em; }
+  .stage-name { font-family: var(--font-mono); font-weight: 600; font-size: 18px; fill: var(--ink); }
+  .stage-role { font-size: 12.5px; fill: var(--ink-soft); }
+  .doc-pill { fill: var(--surface-2); stroke: var(--line); stroke-width: 1; }
+  .doc-text { font-family: var(--font-mono); font-size: 12.5px; fill: var(--forward-ink); }
+  .conn { fill: none; stroke-width: 2.4; }
+  .conn.fwd { stroke: var(--forward); }
+  .conn.back { stroke: var(--back); stroke-dasharray: 7 6; }
+  .conn-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; }
+  .conn-label.fwd { fill: var(--forward-ink); }
+  .conn-label.back { fill: var(--back-ink); }
+  .g-stage { transition: opacity .25s; }
+  .conn-group { transition: opacity .25s; }
+
+  /* mode filtering */
+  .map.show-forward .back-layer { opacity: .12; }
+  .map.show-back .fwd-layer { opacity: .12; }
+
+  /* scenario highlight */
+  .g-stage.hot .stage-box { stroke: var(--forward); stroke-width: 2.6; }
+  .g-stage.hot.hot-back .stage-box { stroke: var(--back); }
+  .g-stage.hot { filter: drop-shadow(0 6px 16px rgba(15,125,112,.28)); }
+  .g-stage.hot.hot-back { filter: drop-shadow(0 6px 16px rgba(184,84,29,.30)); }
+  .g-stage.dim { opacity: .35; }
+  .conn.flow { animation: march 1s linear infinite; stroke-width: 3.4; }
+  .conn.back.flow { stroke-dasharray: 7 6; }
+  .conn.fwd.flow { stroke-dasharray: 9 7; }
+  @keyframes march { to { stroke-dashoffset: -26; } }
+
+  .stage-hit:focus-visible { outline: none; }
+  .g-stage:focus-within .stage-box { stroke: var(--forward); stroke-width: 2.6; }
+
+  /* ---------- narrow map ---------- */
+  .diagram-narrow { display: none; }
+  @media (max-width: 720px) { .diagram-narrow { display: block; } }
+  .nstage {
+    border: 1.5px solid var(--line-strong); background: var(--surface);
+    border-radius: 12px; padding: 14px 16px;
+  }
+  .nstage.optional { border-style: dashed; }
+  .nstage .n-top { display: flex; align-items: baseline; gap: 10px; }
+  .nstage .n-name { font-family: var(--font-mono); font-weight: 600; font-size: 16px; }
+  .nstage .n-idx { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); }
+  .nstage .n-doc { font-family: var(--font-mono); font-size: 12px; color: var(--forward-ink); margin-top: 6px; }
+  .nflow { display: flex; align-items: center; gap: 8px; color: var(--ink-faint); font-size: 12px; font-family: var(--font-mono); padding: 6px 0 6px 8px; }
+  .nflow.fwd { color: var(--forward-ink); }
+  .nback-note {
+    margin-top: 14px; padding: 12px 14px; border-radius: 12px;
+    border: 1.5px dashed var(--back); background: var(--back-wash); color: var(--back-ink);
+    font-size: 13px;
+  }
+
+  /* ---------- scenario player ---------- */
+  .scenario {
+    margin-top: 18px;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); box-shadow: var(--shadow);
+    padding: 18px 20px;
+  }
+  .scenario .s-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .scenario .s-title { font-weight: 620; font-size: 15px; margin: 0; }
+  .btn {
+    font: inherit; font-size: 13.5px; font-weight: 560;
+    border: 1px solid var(--forward); background: var(--forward); color: #fff;
+    padding: 9px 18px; border-radius: 999px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: filter .15s, transform .05s;
+  }
+  .btn:hover { filter: brightness(1.06); }
+  .btn:active { transform: translateY(1px); }
+  .btn.ghost { background: transparent; color: var(--ink-soft); border-color: var(--line-strong); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .s-progress { display: flex; gap: 6px; margin-left: auto; }
+  .s-progress i { width: 26px; height: 4px; border-radius: 2px; background: var(--line-strong); transition: background .2s; }
+  .s-progress i.on { background: var(--forward); }
+  .s-progress i.on.back { background: var(--back); }
+  .s-caption {
+    margin-top: 16px; min-height: 52px;
+    display: flex; gap: 13px; align-items: flex-start;
+  }
+  .s-caption .s-tag {
+    flex: none; font-family: var(--font-mono); font-size: 11px; letter-spacing: .05em;
+    text-transform: uppercase; padding: 5px 10px; border-radius: 8px;
+    background: var(--surface-2); color: var(--ink-soft); border: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .s-caption.is-back .s-tag { color: var(--back-ink); border-color: var(--back); background: var(--back-wash); }
+  .s-caption.is-fwd .s-tag { color: var(--forward-ink); border-color: var(--forward); background: var(--forward-wash); }
+  .s-caption p { margin: 2px 0 0; font-size: 14.5px; }
+  .s-caption code { font-family: var(--font-mono); font-size: .9em; background: var(--surface-2); padding: 1px 6px; border-radius: 5px; }
+
+  /* ---------- sections ---------- */
+  section { padding: 46px 0; }
+  .section-head { margin-bottom: 26px; }
+  h2 { font-size: clamp(22px, 3vw, 28px); letter-spacing: -.01em; margin: 8px 0 0; font-weight: 640; text-wrap: balance; }
+  .section-head p { color: var(--ink-soft); margin: 10px 0 0; max-width: 64ch; }
+
+  .stage-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  @media (max-width: 720px) { .stage-grid { grid-template-columns: 1fr; } }
+  .scard {
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+    padding: 22px; box-shadow: var(--shadow); scroll-margin-top: 20px;
+    transition: box-shadow .25s, border-color .25s, transform .25s;
+    position: relative; overflow: hidden;
+  }
+  .scard::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--forward);
+  }
+  .scard.optional::before { background: var(--ink-faint); }
+  .scard.flash { border-color: var(--forward); box-shadow: 0 0 0 3px var(--forward-wash), var(--shadow); }
+  .scard .c-idx { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); letter-spacing: .12em; text-transform: uppercase; }
+  .scard h3 { font-family: var(--font-mono); font-size: 20px; margin: 6px 0 2px; font-weight: 620; }
+  .scard .c-doc { font-family: var(--font-mono); font-size: 13px; color: var(--forward-ink); }
+  .scard .c-owns {
+    display: inline-block; margin-top: 12px; font-size: 12px; font-family: var(--font-mono);
+    padding: 4px 10px; border-radius: 999px; background: var(--forward-wash); color: var(--forward-ink);
+  }
+  .scard.optional .c-owns { background: var(--surface-2); color: var(--ink-soft); }
+  .scard .c-desc { margin: 14px 0 0; font-size: 14px; color: var(--ink); }
+  .scard dl { margin: 16px 0 0; display: grid; gap: 10px; }
+  .scard dl > div { display: grid; grid-template-columns: 108px 1fr; gap: 10px; align-items: start; }
+  .scard dt { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; padding-top: 1px; }
+  .scard dd { margin: 0; font-size: 13.5px; color: var(--ink-soft); }
+  .scard dd .arw { color: var(--back); font-weight: 700; }
+  .scard dd .arwf { color: var(--forward); font-weight: 700; }
+  code.doc { font-family: var(--font-mono); font-size: .92em; }
+
+  /* routing table */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; background: var(--surface); }
+  th, td { text-align: left; padding: 15px 18px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: top; }
+  thead th { font-family: var(--font-mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-faint); background: var(--surface-2); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td .route { font-family: var(--font-mono); font-weight: 600; color: var(--back-ink); white-space: nowrap; }
+  td .fname { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-soft); }
+
+  /* rules */
+  .rules { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 720px) { .rules { grid-template-columns: 1fr; } }
+  .rule {
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+    padding: 22px; box-shadow: var(--shadow);
+  }
+  .rule .r-key { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--back-ink); }
+  .rule h3 { margin: 8px 0 8px; font-size: 18px; }
+  .rule p { margin: 0; font-size: 14px; color: var(--ink-soft); }
+  .rule code { font-family: var(--font-mono); font-size: .9em; background: var(--surface-2); padding: 1px 6px; border-radius: 5px; }
+
+  footer { padding: 40px 0 70px; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: 13px; }
+  footer .tree { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-soft); white-space: pre; overflow-x: auto; display: block; margin-top: 14px; line-height: 1.7; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .conn.flow { animation: none; stroke-width: 3.4; }
+    * { scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <nav class="lang-switch" aria-label="Language">
+    <span class="cur">EN</span><span class="sep">/</span><a href="flow.zh-TW.html">繁體中文</a>
+  </nav>
+
+  <header>
+    <p class="eyebrow">SDD Design Skills · pipeline</p>
+    <h1>From a fuzzy requirement to an experienceable screen——<span class="accent-f">hand off forward</span>, <span class="accent-b">hand defects back</span>.</h1>
+    <p class="lede">Four skills hand off in sequence; each step produces exactly one <code style="font-family:var(--font-mono)">.sdd/</code> document that is the sole input to the next. But the pipeline is not a one-way street: when a downstream skill finds a defect that belongs upstream, it routes the fix back to the owner and re-syncs forward — and every document has exactly one skill that may edit it.</p>
+    <div class="principle-strip">
+      <span class="chip"><b>AC has one home</b> · acceptance criteria live only in the brief</span>
+      <span class="chip"><b>Language layering</b> · experience → UI → build</span>
+      <span class="chip"><b>Single ownership</b> · no cross-editing</span>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Highlight flow direction">
+      <button data-mode="all" aria-pressed="true"><span class="dot"></span>All</button>
+      <button data-mode="forward" aria-pressed="false"><span class="dot"></span>Handoff</button>
+      <button data-mode="back" aria-pressed="false"><span class="dot"></span>Handback</button>
+    </div>
+    <div class="legend">
+      <span class="lf"><i></i>Handoff / Re-sync</span>
+      <span class="lb"><i></i>Handback</span>
+    </div>
+  </div>
+
+  <div class="map" id="map">
+    <!-- WIDE SVG DIAGRAM -->
+    <svg class="diagram-wide" viewBox="0 0 1040 430" role="img" aria-label="Four-stage pipeline with a bidirectional feedback loop">
+      <defs>
+        <marker id="arrF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--forward)"/>
+        </marker>
+        <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--back)"/>
+        </marker>
+      </defs>
+
+      <!-- ===== FORWARD LAYER (connectors) ===== -->
+      <g class="fwd-layer conn-group">
+        <path class="conn fwd" id="f1" d="M228,116 L286,116" marker-end="url(#arrF)"/>
+        <path class="conn fwd" id="f2" d="M488,116 L546,116" marker-end="url(#arrF)"/>
+        <path class="conn fwd" id="f3" d="M748,116 L806,116" marker-end="url(#arrF)"/>
+        <text class="conn-label fwd" x="257" y="104" text-anchor="middle">handoff</text>
+        <text class="conn-label fwd" x="517" y="104" text-anchor="middle">handoff</text>
+        <text class="conn-label fwd" x="777" y="104" text-anchor="middle">handoff</text>
+      </g>
+
+      <!-- ===== BACK LAYER (handback bus) ===== -->
+      <g class="back-layer conn-group">
+        <path class="conn back" id="b0" d="M910,168 L910,300"/>
+        <path class="conn back" id="bbus" d="M910,300 L130,300"/>
+        <path class="conn back" id="bui" d="M390,300 L390,172" marker-end="url(#arrB)"/>
+        <path class="conn back" id="bux" d="M130,300 L130,172" marker-end="url(#arrB)"/>
+        <text class="conn-label back" x="620" y="292" text-anchor="middle">Handback ⤴ to the owner · then Re-sync forward</text>
+        <text class="conn-label back" x="398" y="238" text-anchor="start">screen/state/value defect</text>
+        <text class="conn-label back" x="138" y="238" text-anchor="start">need/flow/AC defect</text>
+      </g>
+
+      <!-- ===== STAGES ===== -->
+      <g class="g-stage" id="g-ux" data-card="c-ux" tabindex="0" role="button" aria-label="ux-spec stage detail">
+        <rect class="stage-box" x="32" y="64" width="196" height="104" rx="12"/>
+        <text class="stage-idx" x="48" y="90">01 · EXPLORE</text>
+        <text class="stage-name" x="48" y="116">ux-spec</text>
+        <text class="stage-role" x="48" y="138">need · flow · AC scenarios</text>
+        <rect class="doc-pill" x="48" y="146" width="132" height="18" rx="9"/>
+        <text class="doc-text" x="56" y="159">DESIGN-BRIEF.md</text>
+        <rect class="stage-hit" x="32" y="64" width="196" height="104" rx="12"/>
+      </g>
+      <g class="g-stage" id="g-ui" data-card="c-ui" tabindex="0" role="button" aria-label="ui-spec stage detail">
+        <rect class="stage-box" x="292" y="64" width="196" height="104" rx="12"/>
+        <text class="stage-idx" x="308" y="90">02 · UI DESIGN</text>
+        <text class="stage-name" x="308" y="116">ui-spec</text>
+        <text class="stage-role" x="308" y="138">screens · states · values</text>
+        <rect class="doc-pill" x="308" y="146" width="96" height="18" rx="9"/>
+        <text class="doc-text" x="316" y="159">UI-SPEC.md</text>
+        <rect class="stage-hit" x="292" y="64" width="196" height="104" rx="12"/>
+      </g>
+      <g class="g-stage" id="g-ul" data-card="c-ul" tabindex="0" role="button" aria-label="ubiquitous-language-mapping stage detail">
+        <rect class="stage-box optional" x="552" y="64" width="196" height="104" rx="12"/>
+        <text class="stage-idx" x="568" y="90">03 · GLOSSARY (OPT)</text>
+        <text class="stage-name" x="568" y="116" style="font-size:15px">ul-mapping</text>
+        <text class="stage-role" x="568" y="138">shared vocabulary</text>
+        <rect class="doc-pill" x="568" y="146" width="84" height="18" rx="9"/>
+        <text class="doc-text" x="576" y="159">UL-MAP.md</text>
+        <rect class="stage-hit" x="552" y="64" width="196" height="104" rx="12"/>
+      </g>
+      <g class="g-stage" id="g-db" data-card="c-db" tabindex="0" role="button" aria-label="design-build stage detail">
+        <rect class="stage-box" x="812" y="64" width="196" height="104" rx="12"/>
+        <text class="stage-idx" x="828" y="90">04 · BUILD</text>
+        <text class="stage-name" x="828" y="116">design-build</text>
+        <text class="stage-role" x="828" y="138">real screens · prototype</text>
+        <rect class="doc-pill" x="828" y="146" width="112" height="18" rx="9"/>
+        <text class="doc-text" x="836" y="159">build/ (HTML/Figma)</text>
+        <rect class="stage-hit" x="812" y="64" width="196" height="104" rx="12"/>
+      </g>
+    </svg>
+
+    <!-- NARROW STACKED DIAGRAM -->
+    <div class="diagram-narrow">
+      <div class="nstage" data-card="c-ux">
+        <div class="n-top"><span class="n-idx">01</span><span class="n-name">ux-spec</span></div>
+        <div>need · flow · AC scenarios</div><div class="n-doc">DESIGN-BRIEF.md</div>
+      </div>
+      <div class="nflow fwd">▼ handoff</div>
+      <div class="nstage" data-card="c-ui">
+        <div class="n-top"><span class="n-idx">02</span><span class="n-name">ui-spec</span></div>
+        <div>screens · states · values</div><div class="n-doc">UI-SPEC.md</div>
+      </div>
+      <div class="nflow fwd">▼ handoff</div>
+      <div class="nstage optional" data-card="c-ul">
+        <div class="n-top"><span class="n-idx">03</span><span class="n-name">ul-mapping</span><span style="font-size:11px;color:var(--ink-faint)">optional</span></div>
+        <div>shared vocabulary</div><div class="n-doc">UL-MAP.md</div>
+      </div>
+      <div class="nflow fwd">▼ handoff</div>
+      <div class="nstage" data-card="c-db">
+        <div class="n-top"><span class="n-idx">04</span><span class="n-name">design-build</span></div>
+        <div>real screens · prototype</div><div class="n-doc">build/ (HTML/Figma)</div>
+      </div>
+      <div class="nback-note">⤴ <b>Handback</b>: screen/state/value defect → back to <code>ui-spec</code>; need/flow/AC defect → back to <code>ux-spec</code>. After the fix, <b>Re-sync</b> rebuilds only the affected parts.</div>
+    </div>
+  </div>
+
+  <!-- SCENARIO PLAYER -->
+  <div class="scenario">
+    <div class="s-head">
+      <p class="s-title">▶ Walk through: how one handback closes the loop</p>
+      <div class="s-progress" aria-hidden="true">
+        <i data-step="0"></i><i data-step="1"></i><i data-step="2"></i><i data-step="3"></i><i data-step="4"></i>
+      </div>
+    </div>
+    <div class="s-caption" id="caption" aria-live="polite">
+      <span class="s-tag" id="cap-tag">Scenario</span>
+      <p id="cap-text">Press Play to see <code>design-build</code> hit a defect while building checkout, route it back upstream for a fix, then re-sync forward — one full loop.</p>
+    </div>
+    <div class="s-head" style="margin-top:16px">
+      <button class="btn" id="playBtn">Play scenario</button>
+      <button class="btn ghost" id="stepBtn">Next ›</button>
+      <button class="btn ghost" id="resetBtn" disabled>Reset</button>
+    </div>
+  </div>
+
+  <!-- STAGE DETAIL -->
+  <section>
+    <div class="section-head">
+      <p class="eyebrow">Four stages · each with one job</p>
+      <h2>What each skill does, which document it owns, and who it trades handbacks with</h2>
+      <p>Click any stage in the map above to jump to its card. The “owns” tag means: this document is edited only by that skill — feedback always travels via handback and re-sync, never cross-editing.</p>
+    </div>
+
+    <div class="stage-grid">
+      <article class="scard" id="c-ux">
+        <div class="c-idx">Stage 01 · Explore</div>
+        <h3>ux-spec</h3>
+        <div class="c-doc">→ DESIGN-BRIEF.md</div>
+        <span class="c-owns">Owns: need · flow · AC scenarios</span>
+        <p class="c-desc">Reach 100% intent consensus in experience language, then pin the intent down with concrete scenarios (happy path / boundaries / exceptions). <b>These scenarios are the acceptance criteria (AC)</b> — the pipeline's single home for them.</p>
+        <dl>
+          <div><dt>Hands off to</dt><dd><span class="arwf">▶</span> ui-spec</dd></div>
+          <div><dt>Absorbs handback</dt><dd><span class="arw">⤴</span> from ui-spec / design-build — “need·flow·AC wrong or infeasible”</dd></div>
+          <div><dt>Re-entry</dt><dd>amend: revise only affected scenarios → re-take Confirm/Go → flag downstream <code class="doc">UI-SPEC</code> / <code class="doc">build/</code> stale</dd></div>
+        </dl>
+      </article>
+
+      <article class="scard" id="c-ui">
+        <div class="c-idx">Stage 02 · UI Design</div>
+        <h3>ui-spec</h3>
+        <div class="c-doc">→ UI-SPEC.md</div>
+        <span class="c-owns">Owns: screens · elements · states · values</span>
+        <p class="c-desc">Turn the brief into every screen's elements, positions, hierarchy, states, and interactions, plus the concrete visual values resolved from the design guideline. <b>No scenarios, no AC</b> — it only references the brief for coverage.</p>
+        <dl>
+          <div><dt>Hands off to</dt><dd><span class="arwf">▶</span> design-build</dd></div>
+          <div><dt>Hands back to</dt><dd><span class="arw">⤴</span> ux-spec (when a scenario is infeasible as an experience)</dd></div>
+          <div><dt>Absorbs handback</dt><dd><span class="arw">⤴</span> UI-structural defects from design-build</dd></div>
+          <div><dt>Re-entry</dt><dd>reconcile: revise only affected screens + re-run the coverage check</dd></div>
+        </dl>
+      </article>
+
+      <article class="scard optional" id="c-ul">
+        <div class="c-idx">Stage 03 · Glossary (optional)</div>
+        <h3>ul-mapping</h3>
+        <div class="c-doc">→ UL-MAP.md</div>
+        <span class="c-owns">Owns: shared vocabulary dictionary</span>
+        <p class="c-desc">Keep “user's term ↔ component name ↔ UI label ↔ design token” pointing at one concept. Best run <b>after ui-spec</b>, to capture the vocabulary the design actually landed on.</p>
+        <dl>
+          <div><dt>Fed by downstream</dt><dd><span class="arwf">▶</span> new-terms lists from ui-spec / design-build → UPDATE</dd></div>
+          <div><dt>Hands back to</dt><dd><span class="arw">⤴</span> ux-spec (need ambiguity) / ui-spec (naming inconsistency)</dd></div>
+        </dl>
+      </article>
+
+      <article class="scard" id="c-db">
+        <div class="c-idx">Stage 04 · Build</div>
+        <h3>design-build</h3>
+        <div class="c-doc">→ build/ (HTML or Figma)</div>
+        <span class="c-owns">Owns: real screens + playable prototype</span>
+        <p class="c-desc">Build the screens from UI-SPEC and verify each one against the brief's AC as the oracle. <b>No new design decisions</b> — honor what the spec fixed; for open details, commit sensible values and list them as assumptions.</p>
+        <dl>
+          <div><dt>Decision rule</dt><dd>low-impact open detail → patch in place; <b>structural / AC-affecting</b> → hand back</dd></div>
+          <div><dt>Hands back to</dt><dd><span class="arw">⤴</span> ui-spec (screen/state/value) / ux-spec (infeasible scenario)</dd></div>
+          <div><dt>Re-entry</dt><dd>re-sync: rebuild only the affected screens in an existing build</dd></div>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <!-- ROUTING -->
+  <section>
+    <div class="section-head">
+      <p class="eyebrow">Handback routing</p>
+      <h2>The nature of the defect decides which owner it goes back to</h2>
+      <p>The downstream skill never patches over the defect or cross-edits an upstream document; it emits a structured handback (what's wrong, where it traces to, the proposed fix) and routes it to the owner.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Nature of the defect</th><th>Routes back to</th><th>Document fixed</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Need / flow / scenario (AC) wrong, missing, or <b>infeasible as an experience</b></td>
+            <td><span class="route">ux-spec</span></td>
+            <td><span class="fname">DESIGN-BRIEF.md</span></td>
+          </tr>
+          <tr>
+            <td>Screen / element / state / interaction / visual value missing, contradictory, or <b>unbuildable</b></td>
+            <td><span class="route">ui-spec</span></td>
+            <td><span class="fname">UI-SPEC.md</span></td>
+          </tr>
+          <tr>
+            <td>Vocabulary drift / a new term to capture</td>
+            <td><span class="route">ul-mapping</span></td>
+            <td><span class="fname">UL-MAP.md</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- RULES -->
+  <section>
+    <div class="section-head">
+      <p class="eyebrow">Two rules that keep it safe</p>
+      <h2>So the loop converges instead of ping-ponging forever</h2>
+    </div>
+    <div class="rules">
+      <div class="rule">
+        <div class="r-key">Single ownership</div>
+        <h3>Each document is edited by exactly one skill</h3>
+        <p><code>brief→ux-spec</code>, <code>UI-SPEC→ui-spec</code>, <code>UL-MAP→ul-mapping</code>, <code>build→design-build</code>. Feedback works through handback + re-sync, never cross-editing — which is exactly what lets “AC has one home” hold.</p>
+      </div>
+      <div class="rule">
+        <div class="r-key">Convergence first</div>
+        <h3>If it's a low-impact local fix, don't hand it back</h3>
+        <p>design-build just commits sensible values for details the spec left open; only <b>structural / AC-affecting</b> defects escalate. Batch all handbacks into one pass to avoid back-and-forth ping-pong.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p><b>.sdd/ output structure</b> — one folder per feature; cross-feature shared files live at the root.</p>
+    <code class="tree">.sdd/
+├── UL-MAP.md                       # cross-feature shared vocabulary (optional)
+├── DESIGN-FOUNDATIONS.md           # cross-feature design foundations (optional)
+└── {yyyy-MM-dd}-{feature-slug}/
+    ├── DESIGN-BRIEF.md             # ux-spec: need + flow + AC scenarios
+    ├── UI-SPEC.md                  # ui-spec: UI design + visual values
+    └── build/                      # design-build: single HTML file or Figma link</code>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var map = document.getElementById('map');
+
+    var segButtons = document.querySelectorAll('.seg button');
+    segButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        segButtons.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+        btn.setAttribute('aria-pressed', 'true');
+        map.classList.remove('show-forward', 'show-back');
+        var m = btn.getAttribute('data-mode');
+        if (m === 'forward') map.classList.add('show-forward');
+        if (m === 'back') map.classList.add('show-back');
+      });
+    });
+
+    function flashCard(id) {
+      var card = document.getElementById(id);
+      if (!card) return;
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.classList.add('flash');
+      setTimeout(function () { card.classList.remove('flash'); }, 1600);
+    }
+    document.querySelectorAll('.g-stage').forEach(function (g) {
+      var target = g.getAttribute('data-card');
+      g.addEventListener('click', function () { flashCard(target); });
+      g.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flashCard(target); }
+      });
+    });
+    document.querySelectorAll('.diagram-narrow [data-card]').forEach(function (n) {
+      n.style.cursor = 'pointer';
+      n.addEventListener('click', function () { flashCard(n.getAttribute('data-card')); });
+    });
+
+    var stages = {
+      ux: document.getElementById('g-ux'),
+      ui: document.getElementById('g-ui'),
+      ul: document.getElementById('g-ul'),
+      db: document.getElementById('g-db')
+    };
+    var conns = {
+      f1: document.getElementById('f1'), f2: document.getElementById('f2'), f3: document.getElementById('f3'),
+      b0: document.getElementById('b0'), bbus: document.getElementById('bbus'),
+      bui: document.getElementById('bui'), bux: document.getElementById('bux')
+    };
+    var capWrap = document.getElementById('caption');
+    var capTag = document.getElementById('cap-tag');
+    var capText = document.getElementById('cap-text');
+    var dots = document.querySelectorAll('.s-progress i');
+    var playBtn = document.getElementById('playBtn');
+    var stepBtn = document.getElementById('stepBtn');
+    var resetBtn = document.getElementById('resetBtn');
+
+    var steps = [
+      {
+        tag: 'Defect', kind: 'back',
+        hot: ['db'], flow: [],
+        text: 'While building checkout, design-build finds it: the brief has a “payment failed” scenario, but UI-SPEC has no matching error state to place.'
+      },
+      {
+        tag: 'Handback ⤴', kind: 'back',
+        hot: ['db', 'ui'], hotBack: true, flow: ['b0', 'bbus', 'bui'],
+        text: 'Classified as a structural defect (not a low-impact gap) → no papering over, no editing the spec: emit a handback routed to ui-spec.'
+      },
+      {
+        tag: 'Reconcile', kind: 'back',
+        hot: ['ui'], hotBack: true, flow: [],
+        text: 'ui-spec enters reconcile mode: add just the error state, re-run the coverage check, bump UI-SPEC.md to v1.1, and flag build/ as stale.'
+      },
+      {
+        tag: 'Re-sync ▶', kind: 'fwd',
+        hot: ['ui', 'db'], flow: ['f2', 'f3'],
+        text: 'Re-sync forward: design-build rebuilds only the affected error-state screen, not the whole thing.'
+      },
+      {
+        tag: 'Loop closed ✓', kind: 'fwd',
+        hot: ['db'], flow: [],
+        text: 'The defect was fixed at the correct owner and aligned downstream. At no point did any skill edit a document it does not own.'
+      }
+    ];
+
+    var idx = -1, timer = null;
+
+    function clearHighlights() {
+      Object.keys(stages).forEach(function (k) {
+        stages[k].classList.remove('hot', 'hot-back', 'dim');
+      });
+      Object.keys(conns).forEach(function (k) { conns[k].classList.remove('flow'); });
+    }
+
+    function render(i) {
+      clearHighlights();
+      var s = steps[i];
+      Object.keys(stages).forEach(function (k) { stages[k].classList.add('dim'); });
+      s.hot.forEach(function (k) {
+        stages[k].classList.remove('dim');
+        stages[k].classList.add('hot');
+        if (s.hotBack) stages[k].classList.add('hot-back');
+      });
+      s.flow.forEach(function (c) { if (conns[c]) conns[c].classList.add('flow'); });
+      capTag.textContent = s.tag;
+      capText.textContent = s.text;
+      capWrap.classList.remove('is-back', 'is-fwd');
+      capWrap.classList.add(s.kind === 'back' ? 'is-back' : 'is-fwd');
+      dots.forEach(function (d, di) {
+        d.classList.toggle('on', di <= i);
+        d.classList.toggle('back', s.kind === 'back' && di <= i);
+      });
+      resetBtn.disabled = false;
+    }
+
+    function goTo(i) {
+      if (i >= steps.length) { stop(); return; }
+      idx = i;
+      render(idx);
+      stepBtn.disabled = idx >= steps.length - 1;
+    }
+
+    function next() { if (idx < steps.length - 1) goTo(idx + 1); }
+
+    function play() {
+      stop();
+      goTo(0);
+      playBtn.disabled = true; playBtn.textContent = 'Playing…';
+      timer = setInterval(function () {
+        if (idx >= steps.length - 1) { stopPlaying(); return; }
+        goTo(idx + 1);
+      }, 2600);
+    }
+    function stopPlaying() {
+      if (timer) { clearInterval(timer); timer = null; }
+      playBtn.disabled = false; playBtn.textContent = 'Replay';
+    }
+    function stop() { stopPlaying(); }
+
+    function reset() {
+      stop();
+      clearHighlights();
+      idx = -1;
+      Object.keys(stages).forEach(function (k) { stages[k].classList.remove('dim'); });
+      dots.forEach(function (d) { d.classList.remove('on', 'back'); });
+      capTag.textContent = 'Scenario';
+      capWrap.classList.remove('is-back', 'is-fwd');
+      capText.textContent = 'Press Play to see design-build hit a defect while building checkout, route it back upstream for a fix, then re-sync forward — one full loop.';
+      playBtn.disabled = false; playBtn.textContent = 'Play scenario';
+      stepBtn.disabled = false;
+      resetBtn.disabled = true;
+    }
+
+    playBtn.addEventListener('click', play);
+    stepBtn.addEventListener('click', function () { stopPlaying(); if (idx < 0) goTo(0); else next(); });
+    resetBtn.addEventListener('click', reset);
+  })();
+</script>
+</body>
+</html>
