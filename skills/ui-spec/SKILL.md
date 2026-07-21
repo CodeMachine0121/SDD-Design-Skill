@@ -111,6 +111,7 @@ Investigate first, then ask **only** about sections that remain `TBD` or genuine
 4. **Investigate existing design.** Search existing screens/prototypes for layouts and components this feature will touch or resemble. Note conventions and visual values to reuse instead of asking.
 5. **Read sibling design docs.** List `.sdd/` and read `UI-SPEC.md` in overlapping feature folders. Reuse their established screen structures, interaction patterns, and resolved visual values.
 6. **Build a pre-flight context summary.** Map what each interview section below (including the concrete visual values) can already be answered from the brief, the design guideline, UL-MAP, foundations, and sibling docs vs. what is still a genuine gap. Tell the user which sections are already covered, then only ask about the gaps.
+7. **Detect reconcile mode.** If `UI-SPEC.md` already exists for this feature, this is not a fresh spec — either the brief was amended upstream or `design-build` handed a defect back. Go to the [Feedback Loop](#feedback-loop) and **reconcile** the existing spec against the change; do not regenerate it from scratch.
 
 ---
 
@@ -174,3 +175,54 @@ Ask **one section at a time**, using the [Question Format](#question-format-appl
 4. Report: "UI-SPEC written to `.sdd/{yyyy-MM-dd}-{feature-slug}/UI-SPEC.md`."
    - List any new components/labels/states/tokens you introduced, then add: "Optionally run `ubiquitous-language-mapping` now to capture this vocabulary into `.sdd/UL-MAP.md` (recommended if this vocabulary will be reused across features)."
    - Then: "Next: run `design-build` to build the actual design from this spec."
+
+---
+
+## Feedback Loop
+
+The pipeline is not one-way. `ui-spec` **owns** `UI-SPEC.md` and edits only it — it never edits the brief (that is `ux-spec`'s) and never restates or invents acceptance-criteria scenarios. This skill sits in the middle, so it both **hands defects upward** and **absorbs handbacks from below**.
+
+### Escalate upward — handback to `ux-spec`
+
+While designing the UI you may find the *brief itself* is the problem, not the UI. Trigger a handback when:
+
+- a brief scenario **cannot be realized** as any coherent screen / state / interaction;
+- a flow branch in the brief has **no viable UI** on one side, or two scenarios demand contradictory experiences;
+- satisfying a scenario would require **changing or adding a scenario** — i.e. the AC itself is wrong, missing, or infeasible.
+
+**Do not invent, edit, or work around a scenario.** Stop and emit a handback (format below) routed to `ux-spec`. Resume `ui-spec` only after the brief is amended.
+
+### Absorb handback from `design-build`
+
+When `design-build` reports a **UI-structural** defect — a missing screen/state/interaction needed to satisfy a scenario, or a committed visual value that is contradictory or unbuildable — re-enter this skill in **reconcile mode** to fix `UI-SPEC.md`. (A defect that is really about the need/flow/AC is not yours — pass it on to `ux-spec`.)
+
+### Reconcile mode (existing `UI-SPEC.md`)
+
+Do **not** regenerate from scratch. Instead:
+
+1. Read the existing `UI-SPEC.md` and diff the trigger — the amended brief scenarios and/or the design-build handback — against it.
+2. Preserve every decision the change does not touch. Update **only** the screens, elements, states, interactions, or visual values the change affects.
+3. Re-run the **coverage check** in §5 of the spec so every (possibly new) brief scenario still has a home.
+4. Bump the spec's **Version** and note *what changed and why* (e.g. "v1.1 — added `loading` state for the retry scenario, handed back from design-build").
+5. **Propagate staleness:** if the change alters anything build-visible, tell the user "`UI-SPEC.md` amended — the feature's `build/` is now stale, re-run `design-build`."
+
+### Handback format
+
+Emit this block and stop; do not patch the upstream defect yourself:
+
+> **⤴ Handback → `<ux-spec | design-build owns the fix elsewhere>`**
+> - **Defect:** <what is missing / contradictory / infeasible>
+> - **Traces to:** <brief scenario ref, or the UI-SPEC element/state>
+> - **Why it can't be resolved here:** <why it belongs upstream, not a local patch>
+> - **Proposed correction:** <the concrete change the owning skill should make>
+> - **Then:** run `<owning skill>` to amend → re-run `ui-spec` to reconcile.
+
+### Routing (which skill owns which defect)
+
+| Defect class | Owning skill | Doc |
+|---|---|---|
+| Need / flow / scenario (AC) wrong, missing, or infeasible **as an experience** | `ux-spec` | `DESIGN-BRIEF.md` |
+| Screen / element / state / interaction / visual value wrong, missing, or unbuildable | `ui-spec` (this skill) | `UI-SPEC.md` |
+| Vocabulary drift / new term to capture | `ubiquitous-language-mapping` | `UL-MAP.md` |
+
+**Keep the loop convergent.** Prefer the lowest-impact resolution: pin down or adjust a UI detail yourself when it is genuinely a UI decision; only escalate to `ux-spec` when the AC itself must change. Batch all related handback items into one pass.

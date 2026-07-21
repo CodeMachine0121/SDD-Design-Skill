@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SDD Design Skills — 流程說明</title>
+<style>
+  :root {
+    --paper:   #eef1ee;
+    --surface: #ffffff;
+    --surface-2:#f6f8f6;
+    --ink:     #16211e;
+    --ink-soft:#54615c;
+    --ink-faint:#8a958f;
+    --line:    #d6ddd7;
+    --line-strong:#c2ccc5;
+    --forward: #0f7d70;
+    --forward-ink:#0a5d53;
+    --forward-wash:#dcefeb;
+    --back:    #b8541d;
+    --back-ink:#8f3f13;
+    --back-wash:#f6e3d5;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --shadow: 0 1px 2px rgba(20,33,30,.05), 0 8px 24px -12px rgba(20,33,30,.18);
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:   #0e1412;
+      --surface: #151d1a;
+      --surface-2:#1a2320;
+      --ink:     #e7ece9;
+      --ink-soft:#9fada7;
+      --ink-faint:#6c7a74;
+      --line:    #26312d;
+      --line-strong:#31403a;
+      --forward: #3fbfab;
+      --forward-ink:#7ad7c8;
+      --forward-wash:#153029;
+      --back:    #e08a4e;
+      --back-ink:#f0a875;
+      --back-wash:#2e2015;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 30px -14px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="light"] {
+    --paper:#eef1ee; --surface:#ffffff; --surface-2:#f6f8f6; --ink:#16211e; --ink-soft:#54615c; --ink-faint:#8a958f;
+    --line:#d6ddd7; --line-strong:#c2ccc5; --forward:#0f7d70; --forward-ink:#0a5d53; --forward-wash:#dcefeb;
+    --back:#b8541d; --back-ink:#8f3f13; --back-wash:#f6e3d5;
+    --shadow:0 1px 2px rgba(20,33,30,.05),0 8px 24px -12px rgba(20,33,30,.18);
+  }
+  :root[data-theme="dark"] {
+    --paper:#0e1412; --surface:#151d1a; --surface-2:#1a2320; --ink:#e7ece9; --ink-soft:#9fada7; --ink-faint:#6c7a74;
+    --line:#26312d; --line-strong:#31403a; --forward:#3fbfab; --forward-ink:#7ad7c8; --forward-wash:#153029;
+    --back:#e08a4e; --back-ink:#f0a875; --back-wash:#2e2015;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 30px -14px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+  .lang-switch { font-family: var(--font-mono); font-size: 12.5px; padding-top: 24px; display: flex; gap: 10px; align-items: center; }
+  .lang-switch a { color: var(--ink-soft); text-decoration: none; }
+  .lang-switch a:hover { color: var(--forward); }
+  .lang-switch .cur { color: var(--ink); font-weight: 600; }
+  .lang-switch .sep { color: var(--line-strong); }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  /* ---------- header ---------- */
+  header { padding: 40px 0 40px; }
+  h1 {
+    font-size: clamp(30px, 5.5vw, 52px);
+    line-height: 1.08;
+    letter-spacing: -.02em;
+    margin: 14px 0 0;
+    text-wrap: balance;
+    font-weight: 680;
+  }
+  h1 .accent-f { color: var(--forward); }
+  h1 .accent-b { color: var(--back); }
+  .lede {
+    max-width: 60ch;
+    font-size: clamp(16px, 2.2vw, 19px);
+    color: var(--ink-soft);
+    margin: 20px 0 0;
+  }
+  .principle-strip {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-top: 26px;
+  }
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--ink-soft);
+    background: var(--surface);
+  }
+  .chip b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- controls ---------- */
+  .toolbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px;
+    margin: 40px 0 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .seg {
+    display: inline-flex;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .seg button {
+    font: inherit; font-size: 13px; font-weight: 550;
+    border: 0; background: transparent; color: var(--ink-soft);
+    padding: 7px 15px; border-radius: 999px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: background .18s, color .18s;
+  }
+  .seg button .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .seg button[data-mode="forward"] .dot { background: var(--forward); }
+  .seg button[data-mode="back"] .dot { background: var(--back); }
+  .seg button[data-mode="all"] .dot { background: linear-gradient(90deg,var(--forward) 50%, var(--back) 50%); }
+  .seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+  .legend { display: flex; gap: 18px; margin-left: auto; font-size: 12.5px; color: var(--ink-soft); flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .legend i { width: 22px; height: 0; border-top-width: 3px; border-top-style: solid; display: inline-block; border-radius: 2px; }
+  .legend .lf i { border-color: var(--forward); }
+  .legend .lb i { border-color: var(--back); border-top-style: dashed; }
+
+  /* ---------- map ---------- */
+  .map { position: relative; margin: 8px 0 6px; }
+  .diagram-wide { width: 100%; height: auto; display: block; }
+  @media (max-width: 720px) { .diagram-wide { display: none; } }
+
+  /* SVG element styling driven by mode classes on .map */
+  .stage-box { fill: var(--surface); stroke: var(--line-strong); stroke-width: 1.5; }
+  .stage-box.optional { stroke-dasharray: 5 4; }
+  .stage-hit { fill: transparent; cursor: pointer; }
+  .stage-idx { font-family: var(--font-mono); font-size: 12px; fill: var(--ink-faint); letter-spacing: .08em; }
+  .stage-name { font-family: var(--font-mono); font-weight: 600; font-size: 18px; fill: var(--ink); }
+  .stage-role { font-size: 12.5px; fill: var(--ink-soft); }
+  .doc-pill { fill: var(--surface-2); stroke: var(--line); stroke-width: 1; }
+  .doc-text { font-family: var(--font-mono); font-size: 12.5px; fill: var(--forward-ink); }
+  .conn { fill: none; stroke-width: 2.4; }
+  .conn.fwd { stroke: var(--forward); }
+  .conn.back { stroke: var(--back); stroke-dasharray: 7 6; }
+  .conn-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: .06em; }
+  .conn-label.fwd { fill: var(--forward-ink); }
+  .conn-label.back { fill: var(--back-ink); }
+  .g-stage { transition: opacity .25s; }
+  .conn-group { transition: opacity .25s; }
+
+  /* mode filtering */
+  .map.show-forward .back-layer { opacity: .12; }
+  .map.show-back .fwd-layer { opacity: .12; }
+
+  /* scenario highlight */
+  .g-stage.hot .stage-box { stroke: var(--forward); stroke-width: 2.6; }
+  .g-stage.hot.hot-back .stage-box { stroke: var(--back); }
+  .g-stage.hot { filter: drop-shadow(0 6px 16px rgba(15,125,112,.28)); }
+  .g-stage.hot.hot-back { filter: drop-shadow(0 6px 16px rgba(184,84,29,.30)); }
+  .g-stage.dim { opacity: .35; }
+  .conn.flow { animation: march 1s linear infinite; stroke-width: 3.4; }
+  .conn.back.flow { stroke-dasharray: 7 6; }
+  .conn.fwd.flow { stroke-dasharray: 9 7; }
+  @keyframes march { to { stroke-dashoffset: -26; } }
+
+  .stage-hit:focus-visible { outline: none; }
+  .g-stage:focus-within .stage-box { stroke: var(--forward); stroke-width: 2.6; }
+
+  /* ---------- narrow map ---------- */
+  .diagram-narrow { display: none; }
+  @media (max-width: 720px) { .diagram-narrow { display: block; } }
+  .nstage {
+    border: 1.5px solid var(--line-strong); background: var(--surface);
+    border-radius: 12px; padding: 14px 16px;
+  }
+  .nstage.optional { border-style: dashed; }
+  .nstage .n-top { display: flex; align-items: baseline; gap: 10px; }
+  .nstage .n-name { font-family: var(--font-mono); font-weight: 600; font-size: 16px; }
+  .nstage .n-idx { font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); }
+  .nstage .n-doc { font-family: var(--font-mono); font-size: 12px; color: var(--forward-ink); margin-top: 6px; }
+  .nflow { display: flex; align-items: center; gap: 8px; color: var(--ink-faint); font-size: 12px; font-family: var(--font-mono); padding: 6px 0 6px 8px; }
+  .nflow.fwd { color: var(--forward-ink); }
+  .nback-note {
+    margin-top: 14px; padding: 12px 14px; border-radius: 12px;
+    border: 1.5px dashed var(--back); background: var(--back-wash); color: var(--back-ink);
+    font-size: 13px;
+  }
+
+  /* ---------- scenario player ---------- */
+  .scenario {
+    margin-top: 18px;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); box-shadow: var(--shadow);
+    padding: 18px 20px;
+  }
+  .scenario .s-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .scenario .s-title { font-weight: 620; font-size: 15px; margin: 0; }
+  .btn {
+    font: inherit; font-size: 13.5px; font-weight: 560;
+    border: 1px solid var(--forward); background: var(--forward); color: #fff;
+    padding: 9px 18px; border-radius: 999px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: filter .15s, transform .05s;
+  }
+  .btn:hover { filter: brightness(1.06); }
+  .btn:active { transform: translateY(1px); }
+  .btn.ghost { background: transparent; color: var(--ink-soft); border-color: var(--line-strong); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .s-progress { display: flex; gap: 6px; margin-left: auto; }
+  .s-progress i { width: 26px; height: 4px; border-radius: 2px; background: var(--line-strong); transition: background .2s; }
+  .s-progress i.on { background: var(--forward); }
+  .s-progress i.on.back { background: var(--back); }
+  .s-caption {
+    margin-top: 16px; min-height: 52px;
+    display: flex; gap: 13px; align-items: flex-start;
+  }
+  .s-caption .s-tag {
+    flex: none; font-family: var(--font-mono); font-size: 11px; letter-spacing: .05em;
+    text-transform: uppercase; padding: 5px 10px; border-radius: 8px;
+    background: var(--surface-2); color: var(--ink-soft); border: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .s-caption.is-back .s-tag { color: var(--back-ink); border-color: var(--back); background: var(--back-wash); }
+  .s-caption.is-fwd .s-tag { color: var(--forward-ink); border-color: var(--forward); background: var(--forward-wash); }
+  .s-caption p { margin: 2px 0 0; font-size: 14.5px; }
+  .s-caption code { font-family: var(--font-mono); font-size: .9em; background: var(--surface-2); padding: 1px 6px; border-radius: 5px; }
+
+  /* ---------- sections ---------- */
+  section { padding: 46px 0; }
+  .section-head { margin-bottom: 26px; }
+  h2 { font-size: clamp(22px, 3vw, 28px); letter-spacing: -.01em; margin: 8px 0 0; font-weight: 640; text-wrap: balance; }
+  .section-head p { color: var(--ink-soft); margin: 10px 0 0; max-width: 64ch; }
+
+  .stage-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+  @media (max-width: 720px) { .stage-grid { grid-template-columns: 1fr; } }
+  .scard {
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+    padding: 22px; box-shadow: var(--shadow); scroll-margin-top: 20px;
+    transition: box-shadow .25s, border-color .25s, transform .25s;
+    position: relative; overflow: hidden;
+  }
+  .scard::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--forward);
+  }
+  .scard.optional::before { background: var(--ink-faint); }
+  .scard.flash { border-color: var(--forward); box-shadow: 0 0 0 3px var(--forward-wash), var(--shadow); }
+  .scard .c-idx { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); letter-spacing: .12em; text-transform: uppercase; }
+  .scard h3 { font-family: var(--font-mono); font-size: 20px; margin: 6px 0 2px; font-weight: 620; }
+  .scard .c-doc { font-family: var(--font-mono); font-size: 13px; color: var(--forward-ink); }
+  .scard .c-owns {
+    display: inline-block; margin-top: 12px; font-size: 12px; font-family: var(--font-mono);
+    padding: 4px 10px; border-radius: 999px; background: var(--forward-wash); color: var(--forward-ink);
+  }
+  .scard.optional .c-owns { background: var(--surface-2); color: var(--ink-soft); }
+  .scard .c-desc { margin: 14px 0 0; font-size: 14px; color: var(--ink); }
+  .scard dl { margin: 16px 0 0; display: grid; gap: 10px; }
+  .scard dl > div { display: grid; grid-template-columns: 92px 1fr; gap: 10px; align-items: start; }
+  .scard dt { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-transform: uppercase; letter-spacing: .04em; padding-top: 1px; }
+  .scard dd { margin: 0; font-size: 13.5px; color: var(--ink-soft); }
+  .scard dd .arw { color: var(--back); font-weight: 700; }
+  .scard dd .arwf { color: var(--forward); font-weight: 700; }
+  code.doc { font-family: var(--font-mono); font-size: .92em; }
+
+  /* routing table */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; background: var(--surface); }
+  th, td { text-align: left; padding: 15px 18px; border-bottom: 1px solid var(--line); font-size: 14px; vertical-align: top; }
+  thead th { font-family: var(--font-mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink-faint); background: var(--surface-2); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td .route { font-family: var(--font-mono); font-weight: 600; color: var(--back-ink); white-space: nowrap; }
+  td .fname { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-soft); }
+
+  /* rules */
+  .rules { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 720px) { .rules { grid-template-columns: 1fr; } }
+  .rule {
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+    padding: 22px; box-shadow: var(--shadow);
+  }
+  .rule .r-key { font-family: var(--font-mono); font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--back-ink); }
+  .rule h3 { margin: 8px 0 8px; font-size: 18px; }
+  .rule p { margin: 0; font-size: 14px; color: var(--ink-soft); }
+  .rule code { font-family: var(--font-mono); font-size: .9em; background: var(--surface-2); padding: 1px 6px; border-radius: 5px; }
+
+  footer { padding: 40px 0 70px; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: 13px; }
+  footer .tree { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-soft); white-space: pre; overflow-x: auto; display: block; margin-top: 14px; line-height: 1.7; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .conn.flow { animation: none; stroke-width: 3.4; }
+    * { scroll-behavior: auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <nav class="lang-switch" aria-label="語言">
+    <a href="flow.html">EN</a><span class="sep">/</span><span class="cur">繁體中文</span>
+  </nav>
+
+  <header>
+    <p class="eyebrow">SDD Design Skills · pipeline</p>
+    <h1>從模糊的需求，到可體驗的畫面——<br><span class="accent-f">往前交棒</span>，缺陷就<span class="accent-b">往回退件</span>。</h1>
+    <p class="lede">四個技能依序交棒，每一步只產出一份 <code style="font-family:var(--font-mono)">.sdd/</code> 文件當作下一步唯一輸入。而 pipeline 不是單行道：下游發現缺陷屬於上游時，會退回擁有者修正、再往下重同步——每份文件永遠只有一個技能能編輯。</p>
+    <div class="principle-strip">
+      <span class="chip"><b>AC 只有一個家</b> · 驗收條件只住在 brief</span>
+      <span class="chip"><b>語言分層</b> · 體驗 → UI → 實作</span>
+      <span class="chip"><b>擁有權唯一</b> · 不越權改檔</span>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="高亮流向">
+      <button data-mode="all" aria-pressed="true"><span class="dot"></span>全部</button>
+      <button data-mode="forward" aria-pressed="false"><span class="dot"></span>往前交棒</button>
+      <button data-mode="back" aria-pressed="false"><span class="dot"></span>退件回饋</button>
+    </div>
+    <div class="legend">
+      <span class="lf"><i></i>Handoff 交棒 / Re-sync 重同步</span>
+      <span class="lb"><i></i>Handback 退件</span>
+    </div>
+  </div>
+
+  <div class="map" id="map">
+    <!-- WIDE SVG DIAGRAM -->
+    <svg class="diagram-wide" viewBox="0 0 1040 430" role="img" aria-label="四階段 pipeline 與雙向回饋閉環示意圖">
+      <defs>
+        <marker id="arrF" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--forward)"/>
+        </marker>
+        <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="var(--back)"/>
+        </marker>
+      </defs>
+
+      <!-- ===== FORWARD LAYER (connectors) ===== -->
+      <g class="fwd-layer conn-group">
+        <path class="conn fwd" id="f1" d="M228,116 L286,116" marker-end="url(#arrF)"/>
+        <path class="conn fwd" id="f2" d="M488,116 L546,116" marker-end="url(#arrF)"/>
+        <path class="conn fwd" id="f3" d="M748,116 L806,116" marker-end="url(#arrF)"/>
+        <text class="conn-label fwd" x="257" y="104" text-anchor="middle">交棒</text>
+        <text class="conn-label fwd" x="517" y="104" text-anchor="middle">交棒</text>
+        <text class="conn-label fwd" x="777" y="104" text-anchor="middle">交棒</text>
+      </g>
+
+      <!-- ===== BACK LAYER (handback bus) ===== -->
+      <g class="back-layer conn-group">
+        <path class="conn back" id="b0" d="M910,168 L910,300"/>
+        <path class="conn back" id="bbus" d="M910,300 L130,300"/>
+        <path class="conn back" id="bui" d="M390,300 L390,172" marker-end="url(#arrB)"/>
+        <path class="conn back" id="bux" d="M130,300 L130,172" marker-end="url(#arrB)"/>
+        <text class="conn-label back" x="620" y="292" text-anchor="middle">Handback ⤴ 退回擁有者修正 · 修正後往前 Re-sync</text>
+        <text class="conn-label back" x="398" y="238" text-anchor="start">畫面/狀態/值缺陷</text>
+        <text class="conn-label back" x="138" y="238" text-anchor="start">需求/流程/AC 缺陷</text>
+      </g>
+
+      <!-- ===== STAGES ===== -->
+      <g class="g-stage" id="g-ux" data-card="c-ux" tabindex="0" role="button" aria-label="ux-spec 階段細節">
+        <rect class="stage-box" x="32" y="64" width="196" height="104" rx="12"/>
+        <text class="stage-idx" x="48" y="90">01 · 探索</text>
+        <text class="stage-name" x="48" y="116">ux-spec</text>
+        <text class="stage-role" x="48" y="138">需求 · 流程 · AC 情境</text>
+        <rect class="doc-pill" x="48" y="146" width="132" height="18" rx="9"/>
+        <text class="doc-text" x="56" y="159">DESIGN-BRIEF.md</text>
+        <rect class="stage-hit" x="32" y="64" width="196" height="104" rx="12"/>
+      </g>
+      <g class="g-stage" id="g-ui" data-card="c-ui" tabindex="0" role="button" aria-label="ui-spec 階段細節">
+        <rect class="stage-box" x="292" y="64" width="196" height="104" rx="12"/>
+        <text class="stage-idx" x="308" y="90">02 · UI 設計</text>
+        <text class="stage-name" x="308" y="116">ui-spec</text>
+        <text class="stage-role" x="308" y="138">畫面 · 狀態 · 視覺值</text>
+        <rect class="doc-pill" x="308" y="146" width="96" height="18" rx="9"/>
+        <text class="doc-text" x="316" y="159">UI-SPEC.md</text>
+        <rect class="stage-hit" x="292" y="64" width="196" height="104" rx="12"/>
+      </g>
+      <g class="g-stage" id="g-ul" data-card="c-ul" tabindex="0" role="button" aria-label="ubiquitous-language-mapping 階段細節">
+        <rect class="stage-box optional" x="552" y="64" width="196" height="104" rx="12"/>
+        <text class="stage-idx" x="568" y="90">03 · 語彙（選用）</text>
+        <text class="stage-name" x="568" y="116" style="font-size:15px">ul-mapping</text>
+        <text class="stage-role" x="568" y="138">共用語彙字典</text>
+        <rect class="doc-pill" x="568" y="146" width="84" height="18" rx="9"/>
+        <text class="doc-text" x="576" y="159">UL-MAP.md</text>
+        <rect class="stage-hit" x="552" y="64" width="196" height="104" rx="12"/>
+      </g>
+      <g class="g-stage" id="g-db" data-card="c-db" tabindex="0" role="button" aria-label="design-build 階段細節">
+        <rect class="stage-box" x="812" y="64" width="196" height="104" rx="12"/>
+        <text class="stage-idx" x="828" y="90">04 · 實作</text>
+        <text class="stage-name" x="828" y="116">design-build</text>
+        <text class="stage-role" x="828" y="138">真實畫面 · 可播放流程</text>
+        <rect class="doc-pill" x="828" y="146" width="112" height="18" rx="9"/>
+        <text class="doc-text" x="836" y="159">build/ (HTML/Figma)</text>
+        <rect class="stage-hit" x="812" y="64" width="196" height="104" rx="12"/>
+      </g>
+    </svg>
+
+    <!-- NARROW STACKED DIAGRAM -->
+    <div class="diagram-narrow">
+      <div class="nstage" data-card="c-ux">
+        <div class="n-top"><span class="n-idx">01</span><span class="n-name">ux-spec</span></div>
+        <div>需求 · 流程 · AC 情境</div><div class="n-doc">DESIGN-BRIEF.md</div>
+      </div>
+      <div class="nflow fwd">▼ 交棒 handoff</div>
+      <div class="nstage" data-card="c-ui">
+        <div class="n-top"><span class="n-idx">02</span><span class="n-name">ui-spec</span></div>
+        <div>畫面 · 狀態 · 視覺值</div><div class="n-doc">UI-SPEC.md</div>
+      </div>
+      <div class="nflow fwd">▼ 交棒 handoff</div>
+      <div class="nstage optional" data-card="c-ul">
+        <div class="n-top"><span class="n-idx">03</span><span class="n-name">ul-mapping</span><span style="font-size:11px;color:var(--ink-faint)">選用</span></div>
+        <div>共用語彙字典</div><div class="n-doc">UL-MAP.md</div>
+      </div>
+      <div class="nflow fwd">▼ 交棒 handoff</div>
+      <div class="nstage" data-card="c-db">
+        <div class="n-top"><span class="n-idx">04</span><span class="n-name">design-build</span></div>
+        <div>真實畫面 · 可播放流程</div><div class="n-doc">build/ (HTML/Figma)</div>
+      </div>
+      <div class="nback-note">⤴ <b>Handback</b>：畫面/狀態/值缺陷 → 退回 <code>ui-spec</code>；需求/流程/AC 缺陷 → 退回 <code>ux-spec</code>。修正後往下 <b>Re-sync</b> 只重建受影響部分。</div>
+    </div>
+  </div>
+
+  <!-- SCENARIO PLAYER -->
+  <div class="scenario">
+    <div class="s-head">
+      <p class="s-title">▶ 走一遍：一個退件情境如何閉環</p>
+      <div class="s-progress" aria-hidden="true">
+        <i data-step="0"></i><i data-step="1"></i><i data-step="2"></i><i data-step="3"></i><i data-step="4"></i>
+      </div>
+    </div>
+    <div class="s-caption" id="caption" aria-live="polite">
+      <span class="s-tag" id="cap-tag">情境</span>
+      <p id="cap-text">按「播放」看 <code>design-build</code> 蓋 checkout 時發現缺陷，如何退回上游修正、再往下重同步，完成一次閉環。</p>
+    </div>
+    <div class="s-head" style="margin-top:16px">
+      <button class="btn" id="playBtn">播放情境</button>
+      <button class="btn ghost" id="stepBtn">下一步 ›</button>
+      <button class="btn ghost" id="resetBtn" disabled>重置</button>
+    </div>
+  </div>
+
+  <!-- STAGE DETAIL -->
+  <section>
+    <div class="section-head">
+      <p class="eyebrow">四階段 · 各司其職</p>
+      <h2>每個技能做什麼、擁有哪份文件、與誰交換退件</h2>
+      <p>點上方地圖的任一階段可跳到對應卡片。「擁有」標籤代表：這份文件只有它能編輯——回饋一律靠退件與重同步，而非越權改檔。</p>
+    </div>
+
+    <div class="stage-grid">
+      <article class="scard" id="c-ux">
+        <div class="c-idx">階段 01 · 探索</div>
+        <h3>ux-spec</h3>
+        <div class="c-doc">→ DESIGN-BRIEF.md</div>
+        <span class="c-owns">擁有：需求 · 流程 · AC 情境</span>
+        <p class="c-desc">用體驗語言達成 100% 意圖共識，再用具體情境（happy／邊界／例外）把意圖釘死。<b>這些情境就是驗收條件（AC）</b>，全 pipeline 唯一的家。</p>
+        <dl>
+          <div><dt>交棒給</dt><dd><span class="arwf">▶</span> ui-spec</dd></div>
+          <div><dt>吸收退件</dt><dd><span class="arw">⤴</span> 來自 ui-spec / design-build 的「需求·流程·AC 有誤或不可行」</dd></div>
+          <div><dt>再進入</dt><dd>amend：只改受影響情境 → 重取 Confirm/Go → 標記下游 <code class="doc">UI-SPEC</code>／<code class="doc">build/</code> stale</dd></div>
+        </dl>
+      </article>
+
+      <article class="scard" id="c-ui">
+        <div class="c-idx">階段 02 · UI 設計</div>
+        <h3>ui-spec</h3>
+        <div class="c-doc">→ UI-SPEC.md</div>
+        <span class="c-owns">擁有：畫面 · 元件 · 狀態 · 視覺值</span>
+        <p class="c-desc">把 brief 變成每個畫面的元件、位置、階層、狀態、互動，以及依 design guideline 落定的視覺數值。<b>完全沒有 scenario／AC</b>——只引用 brief 做覆蓋確認。</p>
+        <dl>
+          <div><dt>交棒給</dt><dd><span class="arwf">▶</span> design-build</dd></div>
+          <div><dt>退件給</dt><dd><span class="arw">⤴</span> ux-spec（情境作為體驗不可行時）</dd></div>
+          <div><dt>吸收退件</dt><dd><span class="arw">⤴</span> design-build 的 UI 結構缺陷</dd></div>
+          <div><dt>再進入</dt><dd>reconcile：只增量修訂受影響畫面 + 重跑覆蓋檢查</dd></div>
+        </dl>
+      </article>
+
+      <article class="scard optional" id="c-ul">
+        <div class="c-idx">階段 03 · 語彙（選用）</div>
+        <h3>ul-mapping</h3>
+        <div class="c-doc">→ UL-MAP.md</div>
+        <span class="c-owns">擁有：共用語彙字典</span>
+        <p class="c-desc">讓「使用者用語 ↔ 元件名 ↔ UI 標籤 ↔ design token」指向同一概念。建議在 <b>ui-spec 之後</b>執行，把設計實際落地的語彙收攏起來。</p>
+        <dl>
+          <div><dt>由下游餵入</dt><dd><span class="arwf">▶</span> ui-spec／design-build 的 new-terms list → UPDATE 收攏</dd></div>
+          <div><dt>退件給</dt><dd><span class="arw">⤴</span> ux-spec（需求歧義）／ ui-spec（命名不一致）</dd></div>
+        </dl>
+      </article>
+
+      <article class="scard" id="c-db">
+        <div class="c-idx">階段 04 · 實作</div>
+        <h3>design-build</h3>
+        <div class="c-doc">→ build/（HTML 或 Figma）</div>
+        <span class="c-owns">擁有：成品畫面 + 可播放流程</span>
+        <p class="c-desc">照 UI-SPEC 把畫面做出來，以 brief 的 AC 為 oracle 逐條驗收。<b>不重做設計決策</b>——spec 定的照做，留白處補合理值並標為假設。</p>
+        <dl>
+          <div><dt>決策規則</dt><dd>低影響留白 → 就地補值；<b>結構性／影響 AC</b> → 退件</dd></div>
+          <div><dt>退件給</dt><dd><span class="arw">⤴</span> ui-spec（畫面/狀態/值）／ ux-spec（情境不可行）</dd></div>
+          <div><dt>再進入</dt><dd>re-sync：既有 build 只重建受影響畫面</dd></div>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <!-- ROUTING -->
+  <section>
+    <div class="section-head">
+      <p class="eyebrow">退件路由</p>
+      <h2>缺陷的本質，決定它退回哪個擁有者</h2>
+      <p>下游不自行硬補、也不越權改上游文件；它產出一個結構化退件（缺陷是什麼、對應哪份文件的哪處、建議怎麼改），路由給擁有者。</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>缺陷本質</th><th>退回哪個技能</th><th>修哪份文件</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>需求／流程／情境(AC) 有誤、缺漏，或<b>作為體驗根本不可行</b></td>
+            <td><span class="route">ux-spec</span></td>
+            <td><span class="fname">DESIGN-BRIEF.md</span></td>
+          </tr>
+          <tr>
+            <td>畫面／元件／狀態／互動／視覺值 缺漏、矛盾，或<b>做不出來</b></td>
+            <td><span class="route">ui-spec</span></td>
+            <td><span class="fname">UI-SPEC.md</span></td>
+          </tr>
+          <tr>
+            <td>語彙漂移／新出現的名詞要收攏</td>
+            <td><span class="route">ul-mapping</span></td>
+            <td><span class="fname">UL-MAP.md</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- RULES -->
+  <section>
+    <div class="section-head">
+      <p class="eyebrow">兩條保命規則</p>
+      <h2>讓閉環收斂，而不是無限來回</h2>
+    </div>
+    <div class="rules">
+      <div class="rule">
+        <div class="r-key">擁有權唯一</div>
+        <h3>每份文件只有一個技能能編輯</h3>
+        <p><code>brief→ux-spec</code>、<code>UI-SPEC→ui-spec</code>、<code>UL-MAP→ul-mapping</code>、<code>build→design-build</code>。回饋靠「退件＋重同步」達成，不靠越權改檔——這正是「AC 只有一個家」得以成立的原因。</p>
+      </div>
+      <div class="rule">
+        <div class="r-key">收斂優先</div>
+        <h3>能就地低影響解決的，就別退件</h3>
+        <p>design-build 對 spec 留白的細節補合理值即可；只有<b>結構性／影響 AC</b> 的缺陷才升級。退件要<b>批次一次給完</b>，避免一來一回的 ping-pong。</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p><b>.sdd/ 產出結構</b> — 一個功能一個資料夾，跨功能共用檔放在根目錄。</p>
+    <code class="tree">.sdd/
+├── UL-MAP.md                       # 跨功能共用語彙（選用）
+├── DESIGN-FOUNDATIONS.md           # 跨功能設計基礎（選用）
+└── {yyyy-MM-dd}-{feature-slug}/
+    ├── DESIGN-BRIEF.md             # ux-spec：需求 + 流程 + AC 情境
+    ├── UI-SPEC.md                  # ui-spec：UI 設計 + 視覺數值
+    └── build/                      # design-build：HTML 單檔 或 Figma 連結</code>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var map = document.getElementById('map');
+
+    var segButtons = document.querySelectorAll('.seg button');
+    segButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        segButtons.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+        btn.setAttribute('aria-pressed', 'true');
+        map.classList.remove('show-forward', 'show-back');
+        var m = btn.getAttribute('data-mode');
+        if (m === 'forward') map.classList.add('show-forward');
+        if (m === 'back') map.classList.add('show-back');
+      });
+    });
+
+    function flashCard(id) {
+      var card = document.getElementById(id);
+      if (!card) return;
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      card.classList.add('flash');
+      setTimeout(function () { card.classList.remove('flash'); }, 1600);
+    }
+    document.querySelectorAll('.g-stage').forEach(function (g) {
+      var target = g.getAttribute('data-card');
+      g.addEventListener('click', function () { flashCard(target); });
+      g.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); flashCard(target); }
+      });
+    });
+    document.querySelectorAll('.diagram-narrow [data-card]').forEach(function (n) {
+      n.style.cursor = 'pointer';
+      n.addEventListener('click', function () { flashCard(n.getAttribute('data-card')); });
+    });
+
+    var stages = {
+      ux: document.getElementById('g-ux'),
+      ui: document.getElementById('g-ui'),
+      ul: document.getElementById('g-ul'),
+      db: document.getElementById('g-db')
+    };
+    var conns = {
+      f1: document.getElementById('f1'), f2: document.getElementById('f2'), f3: document.getElementById('f3'),
+      b0: document.getElementById('b0'), bbus: document.getElementById('bbus'),
+      bui: document.getElementById('bui'), bux: document.getElementById('bux')
+    };
+    var capWrap = document.getElementById('caption');
+    var capTag = document.getElementById('cap-tag');
+    var capText = document.getElementById('cap-text');
+    var dots = document.querySelectorAll('.s-progress i');
+    var playBtn = document.getElementById('playBtn');
+    var stepBtn = document.getElementById('stepBtn');
+    var resetBtn = document.getElementById('resetBtn');
+
+    var steps = [
+      {
+        tag: '缺陷', kind: 'back',
+        hot: ['db'], flow: [],
+        text: 'design-build 蓋 checkout 時發現：brief 有「付款失敗」情境，但 UI-SPEC 沒有對應的 error 狀態畫面可放。'
+      },
+      {
+        tag: 'Handback ⤴', kind: 'back',
+        hot: ['db', 'ui'], hotBack: true, flow: ['b0', 'bbus', 'bui'],
+        text: '判定為結構性缺陷（不是低影響留白）→ 不硬補、不改 spec，產出退件路由給 ui-spec。'
+      },
+      {
+        tag: 'Reconcile', kind: 'back',
+        hot: ['ui'], hotBack: true, flow: [],
+        text: 'ui-spec 進入 reconcile 模式：只補上 error 狀態、重跑覆蓋檢查，UI-SPEC.md 升為 v1.1，並標記 build/ 已 stale。'
+      },
+      {
+        tag: 'Re-sync ▶', kind: 'fwd',
+        hot: ['ui', 'db'], flow: ['f2', 'f3'],
+        text: '往下重同步：design-build 只重建受影響的 error 狀態畫面，不整包重做。'
+      },
+      {
+        tag: '閉環完成 ✓', kind: 'fwd',
+        hot: ['db'], flow: [],
+        text: '缺陷在正確的擁有者處被修好、往下對齊。全程沒有任何技能越權改別人的文件。'
+      }
+    ];
+
+    var idx = -1, timer = null;
+
+    function clearHighlights() {
+      Object.keys(stages).forEach(function (k) {
+        stages[k].classList.remove('hot', 'hot-back', 'dim');
+      });
+      Object.keys(conns).forEach(function (k) { conns[k].classList.remove('flow'); });
+    }
+
+    function render(i) {
+      clearHighlights();
+      var s = steps[i];
+      Object.keys(stages).forEach(function (k) { stages[k].classList.add('dim'); });
+      s.hot.forEach(function (k) {
+        stages[k].classList.remove('dim');
+        stages[k].classList.add('hot');
+        if (s.hotBack) stages[k].classList.add('hot-back');
+      });
+      s.flow.forEach(function (c) { if (conns[c]) conns[c].classList.add('flow'); });
+      capTag.textContent = s.tag;
+      capText.textContent = s.text;
+      capWrap.classList.remove('is-back', 'is-fwd');
+      capWrap.classList.add(s.kind === 'back' ? 'is-back' : 'is-fwd');
+      dots.forEach(function (d, di) {
+        d.classList.toggle('on', di <= i);
+        d.classList.toggle('back', s.kind === 'back' && di <= i);
+      });
+      resetBtn.disabled = false;
+    }
+
+    function goTo(i) {
+      if (i >= steps.length) { stop(); return; }
+      idx = i;
+      render(idx);
+      stepBtn.disabled = idx >= steps.length - 1;
+    }
+
+    function next() { if (idx < steps.length - 1) goTo(idx + 1); }
+
+    function play() {
+      stop();
+      goTo(0);
+      playBtn.disabled = true; playBtn.textContent = '播放中…';
+      timer = setInterval(function () {
+        if (idx >= steps.length - 1) { stopPlaying(); return; }
+        goTo(idx + 1);
+      }, 2600);
+    }
+    function stopPlaying() {
+      if (timer) { clearInterval(timer); timer = null; }
+      playBtn.disabled = false; playBtn.textContent = '重新播放';
+    }
+    function stop() { stopPlaying(); }
+
+    function reset() {
+      stop();
+      clearHighlights();
+      idx = -1;
+      Object.keys(stages).forEach(function (k) { stages[k].classList.remove('dim'); });
+      dots.forEach(function (d) { d.classList.remove('on', 'back'); });
+      capTag.textContent = '情境';
+      capWrap.classList.remove('is-back', 'is-fwd');
+      capText.textContent = '按「播放」看 design-build 蓋 checkout 時發現缺陷，如何退回上游修正、再往下重同步，完成一次閉環。';
+      playBtn.disabled = false; playBtn.textContent = '播放情境';
+      stepBtn.disabled = false;
+      resetBtn.disabled = true;
+    }
+
+    playBtn.addEventListener('click', play);
+    stepBtn.addEventListener('click', function () { stopPlaying(); if (idx < 0) goTo(0); else next(); });
+    resetBtn.addEventListener('click', reset);
+  })();
+</script>
+</body>
+</html>

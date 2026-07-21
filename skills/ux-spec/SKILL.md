@@ -31,6 +31,7 @@ When the user presents a request, **investigate before asking anything**. This s
 
 1. **Scan existing design & product context** relevant to the request: existing screens, flows, prototypes, design-system docs, and any prior art for similar experiences. Note how similar journeys are already handled.
 2. **Read sibling design docs.** List `.sdd/` and read related `DESIGN-BRIEF.md` / `UI-SPEC.md` files in other feature folders, plus `.sdd/UL-MAP.md` and `.sdd/DESIGN-FOUNDATIONS.md` if they exist. Reuse decisions, conventions, personas, and vocabulary already established there instead of re-asking.
+   - **If this feature's own `DESIGN-BRIEF.md` already exists**, this is not a fresh run — it is an **amendment** (the user changed their mind, or a downstream skill handed a defect back to you). Go to the [Feedback Loop](#feedback-loop-amendments--handbacks) and revise only the affected parts; do not rewrite the brief from scratch.
 3. **Write down** your understanding of the user's goal in plain language, and an explicit list of what you now know from investigation vs. what is still genuinely unknown.
 
 ---
@@ -92,6 +93,30 @@ Only after receiving **"Confirm"** or **"Go"**:
 
 ---
 
+## Feedback Loop (amendments & handbacks)
+
+The pipeline is not one-way. `ux-spec` **owns** `DESIGN-BRIEF.md` — it is the single home for the need, flow, and acceptance-criteria scenarios, and **only this skill edits it**. When something downstream turns out to be wrong at the need/flow/AC level, the fix comes back here.
+
+**Two re-entry triggers:**
+
+1. **User change** — the user revises the intent, adds a need, or changes the flow after the brief exists.
+2. **Handback from downstream** — `ui-spec` or `design-build` discovers that a scenario, flow, or need is missing, contradictory, or **infeasible as an experience**, and hands it back (see their Feedback Loop sections). A downstream skill never edits the brief itself; it routes the defect to you.
+
+**Amendment procedure (targeted, not a rewrite):**
+
+1. Identify exactly which scenarios / flow steps / needs the change or handback touches.
+2. Re-open **only those parts** via the Consensus Loop — return to **Step 2** (clarify the new/changed point) and **Step 3** (re-state the affected scenarios), leaving everything already agreed intact.
+3. Get **"Confirm" / "Go"** on the amended parts (same gate as a fresh run).
+4. Write the change into `DESIGN-BRIEF.md`: bump the version, and add a one-line note in the brief's revision/open-items area recording *what changed and why* (e.g. "v1.1 — added `offline retry` scenario, handed back from design-build").
+
+**Propagate downstream staleness.** Amending the brief can invalidate work built on the old version. After writing, tell the user plainly:
+
+> "`DESIGN-BRIEF.md` amended (v1.1). The feature's `UI-SPEC.md` and any `build/` are now **stale** against the changed scenarios — re-run `ui-spec` to reconcile, then `design-build`."
+
+**Keep the loop convergent.** Only accept a handback at the need/flow/AC level; a purely UI or visual problem is `ui-spec`'s to fix, not a reason to reopen the brief. Resolve all related handback items in one amendment pass rather than one at a time.
+
+---
+
 ## Hard Constraints
 
 | Constraint | Rule |
@@ -102,4 +127,6 @@ Only after receiving **"Confirm"** or **"Go"**:
 | Scenarios before prose | Intent must be pinned with concrete flow scenarios (happy path + every boundary + every exception) before the proposal; an un-scenarioed branch is not agreed |
 | Data minimality | Every scenario carries only the facts that change the flow or experience — never a full dump of user or screen detail |
 | Re-loop on new info | Any new need or branch from the user resets to Step 2 |
+| Owns the brief | `DESIGN-BRIEF.md` is edited **only** here; downstream skills route need/flow/AC defects back via handback, they never edit the brief |
+| Amend, don't rewrite | On re-entry, revise only the scenarios/flow the change touches, re-confirm them, bump the version, and flag downstream (`UI-SPEC`, `build/`) as stale |
 | Multiple-choice questions | Every open question offers ≥3 concrete options plus a final "Other — type your own answer" option |
