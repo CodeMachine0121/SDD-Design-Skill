@@ -59,3 +59,21 @@ It is an **optional** step that runs **after `ui-spec`**: once the UI design has
 | `Archeology` | Found in an existing screen/file; meaning or canonical wording unverified |
 | `Confirmed` | Verified with the design lead / product owner |
 | `To Be Deleted` | Deprecated; keep the row as history |
+
+---
+
+## Feedback Loop
+
+The UL Map is the vocabulary spine of the pipeline. It is **fed by** the other skills and, when a naming problem is really a deeper problem, **routes it back** to the owning skill.
+
+**Fed from downstream.** `ui-spec` and `design-build` each keep a *running new-terms list* of components/labels/states/tokens they coined. When they finish, run this skill in **UPDATE** mode to fold that list into `.sdd/UL-MAP.md` — this is the normal way the map stays in sync as features land.
+
+**This skill owns only `UL-MAP.md`.** It never edits a brief or a UI spec. If reconciling a term surfaces something bigger than wording, hand it to the owner instead of resolving it here:
+
+| What the conflict really is | Route to |
+|---|---|
+| Two terms differ because the underlying **need or flow** is ambiguous | `ux-spec` (amend `DESIGN-BRIEF.md`) |
+| Two terms differ because a **screen element / label / state** is inconsistent across the design | `ui-spec` (reconcile `UI-SPEC.md`) |
+| Pure wording / synonym / canonical-name choice | resolve here (UPDATE), promote to `Confirmed` |
+
+When you resolve a term that a spec used under a different name, note it so the user can re-run the relevant skill to align the doc's wording with the confirmed term.

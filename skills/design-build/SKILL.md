@@ -34,6 +34,7 @@ This is the implementation stage of the design pipeline. Upstream, `ux-spec` pro
 2. Read `.sdd/UL-MAP.md` (component/label/state vocabulary) and `.sdd/DESIGN-FOUNDATIONS.md` if present (layout system, component inventory, interaction & accessibility conventions).
 3. **Take stock of the UI spec's visual values.** Whatever it committed to is fixed — do **not** re-ask for a Design Guidelines JSON. The spec intentionally won't pin down every detail; for the gaps, plan to commit sensible build-time values consistent with the guideline/foundations (see the token model in [references/design-guidelines-schema.md](references/design-guidelines-schema.md)) and record them as assumptions. Only stop to ask the user when a *missing* value is both high-impact and genuinely ambiguous — never re-litigate a value the spec already fixed.
 4. Build the **build list**: every screen in the UI spec × its states (default/empty/loading/error/success/restricted), plus the interactions, and the brief scenarios each screen must satisfy.
+5. **Detect re-sync mode.** If `build/` already exists for this feature, an upstream doc was likely amended (the brief or the UI spec changed) — plan an **incremental** rebuild of only the affected screens/states rather than rebuilding everything (see the [Feedback Loop](#feedback-loop)).
 
 ---
 
@@ -75,6 +76,8 @@ Before reporting done, walk the **DESIGN-BRIEF.md scenarios** (the acceptance cr
 - Produce a short **coverage table**: scenario → realized? (yes / partial / no) → note.
 - Also confirm every screen state in the UI spec exists and matches its specified visual values, and flag anything you could not build and why.
 
+**Any scenario that comes out `partial` or `no` is a defect, not a footnote.** Classify each one with the escalate-vs-patch rule in the [Feedback Loop](#feedback-loop): fix it in place only if it is a genuinely low-impact, unambiguous build-time gap; otherwise **hand it back** to the skill that owns the fix, and report it as blocked rather than declaring done.
+
 ---
 
 ## Step 5 — Report
@@ -83,7 +86,50 @@ Report:
 - The target medium and where the output is (folder path for HTML+CSS; file/page link or key for Figma).
 - The visual-value source: committed values taken from `UI-SPEC.md`; list the build-time values you committed for details the spec left open.
 - The coverage table from Step 4.
-- Any open items handed back (e.g. scenarios that need a spec clarification, or `TBD` values that need a decision).
+- Any **handbacks** raised (see Feedback Loop) — each with its routing and proposed correction — and, if any block completion, say so plainly instead of reporting done.
+
+---
+
+## Feedback Loop
+
+`design-build` is the bottom of the pipeline and **owns only `build/`** — it never edits `UI-SPEC.md` or `DESIGN-BRIEF.md`. When building surfaces a defect in an upstream doc, the fix routes back to that doc's owner; the build never silently paints over it.
+
+### Escalate-vs-patch decision
+
+For every gap or defect you hit while building or verifying, classify it:
+
+- **Patch in place** — a low-impact, unambiguous visual detail the spec deliberately left open (a spacing value, an unspecified hover shade). Commit a value consistent with the guideline/foundations and record it in the assumptions list. *(This is the existing build-time-assumption behavior — unchanged.)*
+- **Hand back** — anything **structural or AC-affecting**:
+  - a brief scenario cannot be realized because the spec has **no screen / state / interaction** for it;
+  - a value the UI spec **committed to** is contradictory or unbuildable;
+  - realizing a scenario would require **inventing UI the spec doesn't describe**, or **changing the scenario itself**.
+
+  Do not guess a structural fix and do not fabricate a passing coverage row. Stop, emit a handback, and mark the affected scenarios blocked.
+
+### Handback format
+
+> **⤴ Handback → `<ui-spec | ux-spec>`**
+> - **Defect:** <missing screen/state/interaction, or contradictory/unbuildable value, or unrealizable scenario>
+> - **Traces to:** <brief scenario ref and/or UI-SPEC element/state>
+> - **Why it can't be resolved here:** <why it needs a spec change, not a build-time guess>
+> - **Proposed correction:** <the concrete change the owning skill should make>
+> - **Then:** run `<owning skill>` to amend → re-run `design-build` to re-sync.
+
+### Routing (which skill owns which defect)
+
+| Defect class | Owning skill | Doc |
+|---|---|---|
+| Screen / element / state / interaction / visual value missing, contradictory, or unbuildable | `ui-spec` | `UI-SPEC.md` |
+| Need / flow / scenario (AC) wrong, missing, or infeasible **as an experience** | `ux-spec` | `DESIGN-BRIEF.md` |
+| New component / label / state / token coined while building | `ubiquitous-language-mapping` | `UL-MAP.md` |
+
+When you coined new vocabulary to fill a gap, list it and suggest `ubiquitous-language-mapping` (UPDATE) to fold it into `UL-MAP.md`.
+
+### Re-sync mode (existing `build/`)
+
+When an upstream doc was amended and `build/` already exists, do **not** rebuild everything: diff the amended `UI-SPEC.md` / `DESIGN-BRIEF.md` against the current build, rebuild only the affected screens/states/interactions, re-run Step 4 verification for the touched scenarios, and note in the report what was re-synced.
+
+**Keep the loop convergent.** Prefer patch-in-place for genuine low-impact gaps; escalate only structural/AC-affecting defects; batch all handbacks into one report rather than raising them one at a time.
 
 ---
 
@@ -97,4 +143,7 @@ Report:
 | Vocabulary | Layer/component names and copy use `UL-MAP.md` terms |
 | Values are explicit | Every visual value either traces to the UI spec or is listed as a build-time assumption; no element ships unstyled |
 | Verify before done | Every brief scenario is checked and reported in a coverage table |
+| Escalate, don't paper over | Structural / AC-affecting defects are handed back to the owning skill, not silently patched or hidden with a fabricated coverage row |
+| Never edit upstream docs | `design-build` edits only `build/`; changes to `UI-SPEC.md` / `DESIGN-BRIEF.md` go through their owning skills via handback |
+| Re-sync, don't rebuild | When `build/` already exists after an upstream amendment, rebuild only the affected screens/states |
 | Honest fallback | If the Figma MCP cannot write, say so plainly and offer HTML+CSS — never pretend a Figma file was created |
